@@ -1,12 +1,18 @@
 body {
-	background: #a6cd62;
+	background: #26411a;
+	color: #cccccc;
 }
 .introcontainer {
-	background-image:url(/images/CowsInPaddock.jpg);
-	background-position:center;
+	background: #26411a;
+	background-image:url(/images/background2.png);
+	background-position:right;
 	background-repeat:no-repeat;
-	background-size:cover;
+	background-size:contain;
 	color: white;
+	border-bottom-style:dotted;
+	border-bottom-color: #8FAF7D;
+	border-bottom-width:thin;
+	
 }
 
 .navbar {
