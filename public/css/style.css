@@ -1,24 +1,35 @@
-body {
-	background: #26411a;
-	color: #cccccc;
-}
-.introcontainer {
-	background: #26411a;
-	background-image:url(/images/background2.png);
-	background-position:right;
-	background-repeat:no-repeat;
-	background-size:contain;
-	color: white;
-	border-bottom-style:dotted;
-	border-bottom-color: #8FAF7D;
-	border-bottom-width:thin;
-	
+.leftAlignImage {
+  display: block;
+  align: left;
+  width: 50%;
 }
 
-.navbar {
-	background-color:#624e29;
+.rightAlignImage {
+  display: block;
+  align: right;
+  width: 50%;
 }
 
-.btn-primary {
-	background: #224914;
+#map-canvas {
+  height: 80vh;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  margin-top: 10px;
+}
+
+#check_tracking, #cancel_tracking {
+  display: none;
+}
+
+#start_tracking, #check_tracking, #cancel_tracking {
+  background: black;
+  color: white;
+  align: center;
+  margin:0 auto;
+  margin-left: 10px;
+}
+
+#default-text-maps {
+  text-align: center;
 }
