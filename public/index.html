@@ -20,6 +20,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="js/backendInteraction.js"></script>
   <script src="js/routesBetweenPoints.js"></script>
+  <script src="js/settings.js"></script>
   <link rel = "stylesheet" href = "css/style.css">
 
 </head>
@@ -36,20 +37,40 @@
       <ul class="sidebar-nav">
         <li class="sidebar-brand">
           <a>
-            Menu
+            Tracking Method
           </a>
         </li>
         <li>
-          <a href="#">Track by Tapping</a>
+          <a href="#" id="track-by-tapping" onclick="addMarkerBasedOnSelection(this.id)">Track by Tapping</a>
         </li>
         <li>
-          <a href="#">Track by Walking</a>
+          <a href="#" id="track-by-walking" onclick="addMarkerBasedOnSelection(this.id)">Track by Walking</a>
+        </li>
+        <li class="sidebar-brand">
+          <a>
+            Add Items
+          </a>
         </li>
         <li>
-          <a href="#">Mark Stock Shelters</a>
+          <a href="#" id="mark-stock-shelters" onclick="addMarkerBasedOnSelection(this.id)">Mark Stock Shelters</a>
         </li>
         <li>
-          <a href="#">Mark Stock Feeders</a>
+          <a href="#" id="mark-stock-feeders" onclick="addMarkerBasedOnSelection(this.id)">Mark Stock Feeders</a>
+        </li>
+        <li>
+          <a href="#" id="mark-sheds" onclick="addMarkerBasedOnSelection(this.id)">Mark Sheds</a>
+        </li>
+        <li>
+          <a href="#" id="mark-water-troughs" onclick="addMarkerBasedOnSelection(this.id)">Mark Water Troughs</a>
+        </li>
+        <li>
+          <a href="#" id="mark-bores" onclick="addMarkerBasedOnSelection(this.id)">Mark Bores</a>
+        </li>
+        <li>
+          <a href="#" id="mark-pumps" onclick="addMarkerBasedOnSelection(this.id)">Mark Pumps</a>
+        </li>
+        <li>
+          <a href="#" id="mark-hazards" onclick="addMarkerBasedOnSelection(this.id)">Mark Hazards</a>
         </li>
       </ul>
     </div>
@@ -59,19 +80,48 @@
     <div id="page-content-wrapper">
       <div class="container-fluid">
         <h2>Paddock Management</h2>
-        <a href="#menu-toggle" class="btn btn-secondary" id="menu-toggle">Toggle Menu</a>
+        <p id="boundary-unit">10 km</p>
+        <a href="#menu-toggle" class="btn btn-primary" id="menu-toggle">Menu</a>
       </div>
 
       <div class = "button-wrapper">
-        <input type="button" id="start_tracking" value=" Start Tracking" />
-        <input type="button" id="check_tracking" value=" Check Path" />
-        <input type="button" id="cancel_tracking" value=" Cancel" />
-        <input type="button" id="mark_items" value=" Mark Items" />
+        <input type="button" class="btn btn-default" id="start_tracking" value=" Start Tracking" />
+        <input type="button" class="btn btn-default" id="check_tracking" value=" Check Path" />
+        <input type="button" class="btn btn-default" id="cancel_tracking" value=" Cancel" />
+        <input type="button" class="btn btn-default" id="add_name_to_paddock" value=" Save Path" />
+        <!--<input type="button" id="mark_items" value=" Mark Items" onclick="markDifferentItemsOnMap(false)"/>-->
+
       </div>
+
+      <div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+
+            <div class="modal-body mx-8">
+
+              <i class="fa fa-envelope prefix grey-text"></i>
+              <input type="text" id="defaultForm-text" class="form-control">
+              <label>Name of your paddock</label>
+
+
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+              <button class="btn btn-default" onclick="savePaddockArea();">SAVE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <select id="change-distance" class="bootstrap-select" onchange="changeUnitSystem(this)">
+        <option id="0" value="0" selected="selected"> Metric </option>
+        <option id="1" value="1"> Imperial </option>
+      </select>
+
       <div id="default-text-maps">
         <h1> Loading Maps ... </h1>
       </div>
       <div id="map-canvas"></div>
+
     </div>
     <!-- /#page-content-wrapper -->
 

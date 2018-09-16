@@ -1,62 +1,99 @@
+// Function called from HTML file as a callback after defining the maps
 function mapLocation() {
 
-  var currentLocation, poly, marker;
-  var directionsDisplay;
-  var directionsService = new google.maps.DirectionsService();
-  var map;
-  var routesArray =[];
-  var differentItemsArray = [];
+  window.currentLocation;
+  window.poly;
+  window.marker;
+  window.directionsDisplay;
+  window.directionsService = new google.maps.DirectionsService();
+  window.map;
+  window.routesArray =[];
+  window.differentItemsArray = [];
+  window.trackByWalking = false;
+  window.markersArray = [];
 
-  function markDifferentItemsOnMap (isTracking) {
+  // ** TRACK BY WALKING
 
-    google.maps.event.addListener(map, 'click', function(event) {
-      placeMarker(event.latLng);
-    });
-
-    function placeMarker(location) {
-      var marker = new google.maps.Marker({
-        position: location,
-        map: map,
-        draggable: !isTracking,
-        title: "Title",
-        label: "Label"
-      });
-
-      if (isTracking) {
-
-        routesArray.push([location.lat(),location.lng()]);
-        console.log(routesArray);
-
-      }
-    }
-
+  if (trackByWalking) {
+    //setInterval(function(){
+    //showPosition();
+    //},10000);
   }
 
-  function startTracking() {
-
-    document.getElementById('check_tracking').style.display='block';
-    document.getElementById('cancel_tracking').style.display='block';
-
-    document.getElementById('start_tracking').style.display='none';
+  google.maps.event.addDomListener(window, 'load', getLocationAndInitialize);
+}
 
 
-    markDifferentItemsOnMap (true);
+// Check for current location and initialize Google Maps
+function getLocationAndInitialize() {
+
+  if (navigator.geolocation) {
+
+    if (trackByWalking) {
+      // ** TRACK BY WALKING
+      navigator.geolocation.watchPosition(showPosition);
+    } else {
+      navigator.geolocation.getCurrentPosition(showPosition, showError);
+    }
+
+  } else {
+    console.log ("Geolocation is not supported by this browser.");
+  }
+}
+
+// Show curretn position on the maps
+function showPosition(position) {
+
+  console.log ("Latitude: " + position.coords.latitude + " Longitude: " + position.coords.longitude);
+  currentLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+  directionsDisplay = new google.maps.DirectionsRenderer();
+  //currentLocation = new google.maps.LatLng(-37.846355, 145.114370);
+  var mapOptions = {
+    zoom: 14,
+    center: currentLocation
+  };
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+  document.getElementById('default-text-maps').style.display='none';
+
+  // ** TRACK BY WALKING
+  if (trackByWalking) {
+    poly = new google.maps.Polyline({
+      map: map,
+      path: []
+    });
 
 
-    /*google.maps.event.addListener(map, 'click', function(event) {
-    placeMarker(event.latLng);
-  });
+    var path = poly.getPath();
+    if(position && position.coords ){
+      path.push(new google.maps.LatLng(position.coords.latitude,  position.coords.longitude));
+    }
+    // update the polyline with the updated path
+    poly.setPath(path);
+  }
+  // ** TRACK BY WALKING -- ENDS
 
-  function placeMarker(location) {
-  var marker = new google.maps.Marker({
-  position: location,
-  map: map,
-  draggable: true
-});
-routesArray.push([location.lat(),location.lng()]);
-console.log(routesArray);
+  directionsDisplay.setMap(map);
+  google.maps.event.addDomListener(document.getElementById('start_tracking'), 'click', startTracking);
+  google.maps.event.addDomListener(document.getElementById('check_tracking'), 'click', checkTracking);
+  google.maps.event.addDomListener(document.getElementById('cancel_tracking'), 'click', cancelTracking);
+  //google.maps.event.addDomListener(document.getElementById('mark_items'), 'click', markDifferentItemsOnMap(false));
+  google.maps.event.addDomListener(document.getElementById('add_name_to_paddock'), 'click', addNameToPaddock);
 
-}*/
+  removeClickListenersFromMap ("click");
+
+}
+
+function startTracking() {
+
+  document.getElementById('check_tracking').style.display='block';
+  document.getElementById('cancel_tracking').style.display='block';
+  document.getElementById('add_name_to_paddock').style.display='none';
+  document.getElementById('start_tracking').style.display='none';
+  removePolylinesAndMarkers ();
+
+  markDifferentItemsOnMap (true);
+
 }
 
 function checkTracking() {
@@ -66,11 +103,13 @@ function checkTracking() {
   } else  {
 
     routesArray.push(routesArray[0]);
+    calculateDistance ();
   }
-
+  removeClickListenersFromMap ("click");
   document.getElementById('check_tracking').style.display='none';
-  document.getElementById('start_tracking').style.display='block';
+  document.getElementById('start_tracking').style.display='none';
   document.getElementById('cancel_tracking').style.display='block';
+  document.getElementById('add_name_to_paddock').style.display='block';
 
   var i;
   var request = {
@@ -90,11 +129,11 @@ function checkTracking() {
         stopover: true
       });
     }
-
   }
 
   directionsService.route(request, function(result, status) {
     if (status == google.maps.DirectionsStatus.OK) {
+      directionsDisplay.setMap (map);
       directionsDisplay.setOptions( { suppressMarkers: true } );
       directionsDisplay.setDirections(result);
     } else{
@@ -108,158 +147,259 @@ function cancelTracking () {
   document.getElementById('check_tracking').style.display='none';
   document.getElementById('start_tracking').style.display='block';
   document.getElementById('cancel_tracking').style.display='none';
+  document.getElementById('add_name_to_paddock').style.display='none';
+  document.getElementById('boundary-unit').style.display = 'none';
 
-  routesArray =[];
+  removePolylinesAndMarkers ();
+  removeClickListenersFromMap ();
+  routesArray = [];
   marker.setMap(null);
 
 }
 
+function addNameToPaddock () {
+
+  var savedArea = {
+    coordinates: routesArray
+  };
+
+  console.log ("Saved Area : ");
+  console.log (savedArea);
+
+  $('#modalLoginForm').modal('show');
+
+}
+
+
 function calculateDistance () {
 
   var bounds = new google.maps.LatLngBounds;
-  var markersArray = [];
 
-  var origin1 = {lat: 55.93, lng: -3.118};
-  var origin2 = 'Greenwich, England';
-  var destinationA = 'Stockholm, Sweden';
-  var destinationB = {lat: 50.087, lng: 14.421};
+  var distanceTotal = 0.0;
 
-  var destinationIcon = 'https://chart.googleapis.com/chart?' +
-  'chst=d_map_pin_letter&chld=D|FF0000|000000';
-  var originIcon = 'https://chart.googleapis.com/chart?' +
-  'chst=d_map_pin_letter&chld=O|FFFF00|000000';
-  var map = new google.maps.Map(document.getElementById('map-canvas'), {
-    center: {lat: 55.53, lng: 9.4},
-    zoom: 10
-  });
+  for (var i = 0; i < routesArray.length - 1; i++) {
+    var from = {lat: routesArray[i][0], lng: routesArray[i][1]};
+    var dest = {lat: routesArray[i+1][0], lng: routesArray[i+1][1]};
 
-  var geocoder = new google.maps.Geocoder;
+    var service = new google.maps.DistanceMatrixService();
 
-  var service = new google.maps.DistanceMatrixService;
-  service.getDistanceMatrix({
-    origins: [origin1, origin2],
-    destinations: [destinationA, destinationB],
-    travelMode: 'WALKING',
-    unitSystem: google.maps.UnitSystem.METRIC,
-    avoidHighways: false,
-    avoidTolls: false
-  }, function(response, status) {
-    if (status !== 'OK') {
-      alert('Error was: ' + status);
-    } else {
-      var originList = response.originAddresses;
-      var destinationList = response.destinationAddresses;
+    var metricSystem = distanceMeasurement;
+    if (distanceMeasurement > 1) {
+      metricSystem = 0;
+    }
 
+    service.getDistanceMatrix(
+      {
+        origins: [from],
+        destinations: [dest],
+        travelMode: 'WALKING',
+        unitSystem: metricSystem,
+        avoidHighways: true,
+        avoidTolls: true
+      }, callback);
 
-      var showGeocodedAddressOnMap = function(asDestination) {
-        var icon = asDestination ? destinationIcon : originIcon;
-        return function(results, status) {
-          if (status === 'OK') {
-            map.fitBounds(bounds.extend(results[0].geometry.location));
-            markersArray.push(new google.maps.Marker({
-              map: map,
-              position: results[0].geometry.location,
-              icon: icon
-            }));
-          } else {
-            alert('Geocode was not successful due to: ' + status);
+      function callback(response, status) {
+        if (status == 'OK') {
+          var origins = response.originAddresses;
+          var destinations = response.destinationAddresses;
+
+          for (var i = 0; i < origins.length; i++) {
+            var results = response.rows[i].elements;
+
+            for (var j = 0; j < results.length; j++) {
+              var element = results[j];
+              var distance = element.distance.text;
+              var duration = element.duration.text;
+
+              var units = distance.replace(/[0-9^!?. ]/g,'');
+
+              distance = parseFloat(distance);
+
+              distanceTotal = distance + distanceTotal;
+              console.log ("distanceTotal: " + distanceTotal.toFixed(2) + " " + units);
+
+              if (distanceMeasurement > 1) {
+
+                var newDistanceToBeShown = changeUnits (distanceTotal);
+                //distanceTotal = 0.0;
+                document.getElementById('boundary-unit').style.display = 'block';
+                document.getElementById('boundary-unit').innerHTML = newDistanceToBeShown;
+                console.log ("newDistanceToBeShown HERE is: " + newDistanceToBeShown);
+              } else {
+                document.getElementById('boundary-unit').style.display = 'block';
+                document.getElementById('boundary-unit').innerHTML = distanceTotal.toFixed(2) + " " + units;
+              }
+            }
           }
-        };
-      };
-
-      for (var i = 0; i < originList.length; i++) {
-        var results = response.rows[i].elements;
-        geocoder.geocode({'address': originList[i]},
-        showGeocodedAddressOnMap(false));
-        for (var j = 0; j < results.length; j++) {
-          geocoder.geocode({'address': destinationList[j]},
-          showGeocodedAddressOnMap(true));
-
-          console.log ("RESULTS ::  " + originList[i] + ' to ' + destinationList[j] +
-          ': ' + results[j].distance.text);
-
         }
       }
     }
-  });
-}
-
-function getLocationAndInitialize() {
-
-  console.log ("getLocationAndInitialize : called");
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(showPosition, showError);
-
-    // ** TRACK BY WALKING
-    //navigator.geolocation.watchPosition(showPosition, showError);
-  } else {
-    console.log ("Geolocation is not supported by this browser.");
   }
-}
 
-function showPosition(position) {
-
-  console.log ("Latitude: " + position.coords.latitude + " Longitude: " + position.coords.longitude);
-  currentLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-  directionsDisplay = new google.maps.DirectionsRenderer();
-  //currentLocation = new google.maps.LatLng(-37.846355, 145.114370);
-  var mapOptions = {
-    zoom: 14,
-    center: currentLocation
-  };
-  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-  document.getElementById('default-text-maps').style.display='none';
-
-
-  //calculateDistance ();
-  // ** TRACK BY WALKING
-
-  /*
-  poly = new google.maps.Polyline({
-  map: map,
-  path: []
-});
-
-
-var path = poly.getPath();
-if(position && position.coords ){
-path.push(new google.maps.LatLng(position.coords.latitude,  position.coords.longitude));
-}
-// update the polyline with the updated path
-poly.setPath(path);
-*/
-directionsDisplay.setMap(map);
-google.maps.event.addDomListener(document.getElementById('start_tracking'), 'click', startTracking);
-google.maps.event.addDomListener(document.getElementById('check_tracking'), 'click', checkTracking);
-google.maps.event.addDomListener(document.getElementById('cancel_tracking'), 'click', cancelTracking);
-google.maps.event.addDomListener(document.getElementById('mark_items'), 'click', markDifferentItemsOnMap(false));
-
-
-}
-
-// ** TRACK BY WALKING
-/* setInterval(function(){
-showPosition();
-},10000);
-*/
-
-function showError(error) {
-  switch(error.code) {
-    case error.PERMISSION_DENIED:
-    console.log ("User denied the request for Geolocation.");
-    break;
-    case error.POSITION_UNAVAILABLE:
-    console.log ("Location information is unavailable.");
-    break;
-    case error.TIMEOUT:
-    console.log ("The request to get user location timed out.");
-    break;
-    case error.UNKNOWN_ERROR:
-    console.log ("An unknown error occurred.");
-    break;
+  function showError(error) {
+    switch(error.code) {
+      case error.PERMISSION_DENIED:
+      console.log ("User denied the request for Geolocation.");
+      break;
+      case error.POSITION_UNAVAILABLE:
+      console.log ("Location information is unavailable.");
+      break;
+      case error.TIMEOUT:
+      console.log ("The request to get user location timed out.");
+      break;
+      case error.UNKNOWN_ERROR:
+      console.log ("An unknown error occurred.");
+      break;
+    }
   }
-}
 
-google.maps.event.addDomListener(window, 'load', getLocationAndInitialize);
-}
+
+  function addMarkerBasedOnSelection(properties) {
+    $("#wrapper").toggleClass("toggled");
+    switch (properties) {
+      case "track-by-tapping":
+      trackByWalking = false;
+      break;
+
+      case "track-by-walking":
+      trackByWalking = true;
+      break;
+
+      case "mark-stock-shelters":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-stock-feeders":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-sheds":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-water-troughs":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-bores":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-pumps":
+      markDifferentItemsOnMap (false, "");
+      break;
+
+      case "mark-hazards":
+      markDifferentItemsOnMap (false, "");
+      break;
+      default:
+
+    }
+
+  }
+
+  function savePaddockArea () {
+
+    var nameOfPaddock = $("#defaultForm-text").val();
+    console.log ("VALUE: " + nameOfPaddock);
+
+    $('#modalLoginForm').modal('hide');
+
+    document.getElementById('check_tracking').style.display='none';
+    document.getElementById('start_tracking').style.display='block';
+    document.getElementById('cancel_tracking').style.display='none';
+    document.getElementById('add_name_to_paddock').style.display='none';
+    document.getElementById('boundary-unit').style.display = 'none';
+    //SAVE PADDOCK HERE AND CLEAR THE MAP
+
+    var dataParam = {};
+
+    var savedArea = {
+      coordinates: [-37.83653206484877,145.11738254470515]
+    };
+
+    console.log ("asdsadasdasdasdasd");
+    console.log (savedArea.coordinates);
+    console.log ("routesArray " + routesArray);
+    $.get('https://paddockback.au-syd.mybluemix.net/api/paddock/insert?name=' + nameOfPaddock + '&coordinates=' + savedArea.coordinates,dataParam,function(result){
+      console.log ("backendInteraction + uploadDataToDb ", result);
+      //alert ("We will contact you shortly on " + dataParam + ".");
+    })
+
+
+    routesArray = [];
+
+  }
+
+  function changeUnits (distance) {
+
+    if (distanceMeasurement == distanceMeasurementTypes.FEET) {
+
+      var newDistance = distance * 3280.84;
+      return newDistance.toFixed(2) + " ft";
+    }
+
+  }
+
+  function markDifferentItemsOnMap (isTracking, iconPath) {
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      placeMarker(event.latLng);
+    });
+
+    function placeMarker(location) {
+      if (iconPath == "" || iconPath == "  ") {
+        marker = new google.maps.Marker({
+          position: location,
+          map: map,
+          draggable: !isTracking,
+          title: "Title",
+          label: "Label"
+        });
+      } else {
+        marker = new google.maps.Marker({
+          position: location,
+          map: map,
+          draggable: !isTracking,
+          title: "Title",
+          label: "Label",
+          icon: iconPath
+        });
+      }
+
+
+      if (isTracking) {
+        markersArray.push (marker);
+        routesArray.push([location.lat(),location.lng()]);
+        console.log(routesArray);
+
+      }
+    }
+
+  }
+
+  function removeClickListenersFromMap (listenerToBeCleared) {
+
+    google.maps.event.clearListeners(map, listenerToBeCleared);
+
+  }
+
+  function removePolylinesAndMarkers () {
+
+    directionsDisplay.setMap (null);
+
+    for (var i = 0; i < markersArray.length; i++) {
+      markersArray[i].setMap(null);
+    }
+
+    markersArray = [];
+
+  }
+
+  function changeUnitSystem (select) {
+
+    console.log (select.options[select.selectedIndex].getAttribute("id"));
+
+    distanceMeasurement = select.options[select.selectedIndex].getAttribute("id");
+
+  }
