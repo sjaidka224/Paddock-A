@@ -225,10 +225,15 @@ function calculateDistance () {
                 document.getElementById('boundary-unit').style.display = 'block';
                 document.getElementById('boundary-unit').innerHTML = newDistanceToBeShown;
                 console.log ("newDistanceToBeShown HERE is: " + newDistanceToBeShown);
+                changeFontSize ();
               } else {
                 document.getElementById('boundary-unit').style.display = 'block';
                 document.getElementById('boundary-unit').innerHTML = distanceTotal.toFixed(2) + " " + units;
+                changeFontSize ();
               }
+
+              areaOfPolygon (distanceTotal.toFixed(2), routesArray.length, distance);
+
             }
           }
         }
@@ -262,7 +267,7 @@ function calculateDistance () {
       break;
 
       case "track-by-walking":
-      trackByWalking = true;
+      trackByWalking = false; //Should be true here
       break;
 
       case "mark-stock-shelters":
@@ -402,4 +407,24 @@ function calculateDistance () {
 
     distanceMeasurement = select.options[select.selectedIndex].getAttribute("id");
 
+  }
+
+  function areaOfPolygon (perimeter, numberOfSides, sideLength) {
+    console.log ("perimeter : " + perimeter);
+    console.log ("numberOfSides : " + numberOfSides);
+    console.log ("sideLength : " + sideLength);
+    var apothem = (sideLength / (Math.tan (180 / numberOfSides))) / 2;
+
+    var area = ( perimeter * apothem ) / 2;
+
+    console.log ("Areaaaa : " + area);
+
+    return area;
+  }
+
+  function changeFontSize() {
+    var div = document.getElementById("boundary-unit");
+    var currentFont = div.style.fontSize.replace("px", "");
+    console.log ("currentFont " + currentFont);
+    div.style.fontSize = parseInt(currentFont) + parseInt(36) + "px";
   }
