@@ -1,0 +1,147 @@
+.leftAlignImage {
+  display: block;
+  align: left;
+  width: 50%;
+}
+
+.rightAlignImage {
+  display: block;
+  align: right;
+  width: 50%;
+}
+#dropbtn{
+    align : center;
+}
+/*Strip the ul of padding and list styling*/
+ul {
+	list-style-type:none;
+	margin:10px;
+	padding:0;
+	position: absolute;
+}
+
+/*Create a horizontal list with spacing*/
+li {
+	display:inline-block;
+	float: left;
+	margin-right: 1px;
+}
+
+/*Style for menu links*/
+menu{
+    height:10%;
+    padding-top:10px;
+}
+li a {
+	display:block;
+	min-width:210px;
+	height: 50px;
+	text-align: center;
+	line-height: 50px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #fff;
+	background: #2f3036;
+	text-decoration: none;
+}
+
+
+/*Hide dropdown links until they are needed*/
+li ul {
+	display: none;
+}
+
+/*Make dropdown links vertical*/
+li ul li {
+	display: block;
+	float: none;
+}
+
+/*Prevent text wrapping*/
+li ul li a {
+	width: auto;
+	min-width: 100px;
+	padding: 0 20px;
+}
+
+/*Style 'show menu' label button and hide it by default*/
+.show-menu {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	text-decoration: none;
+	color: #fff;
+	background: #19c589;
+	text-align: center;
+	padding: 10px 0;
+	display: none;
+}
+
+/*Hide checkbox*/
+input[type=checkbox]{
+    display: none;
+}
+
+/*Show menu when invisible checkbox is checked*/
+input[type=checkbox]:checked ~ #menu{
+    display: block;
+}
+
+
+/*Responsive Styles*/
+
+@media screen and (max-width : 1500px){
+	/*Make dropdown links appear inline*/
+	ul {
+		position: static;
+		display: none;
+	}
+	/*Create vertical spacing*/
+	li {
+		margin-bottom: 1px;
+	}
+	/*Make all menu links full width*/
+	ul li, li a {
+		width: 100%;
+	}
+	/*Display 'show menu' link*/
+	.show-menu {
+		display:block;
+	}
+}
+#map-canvas {
+  height: 80vh;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  margin-top: 10px;
+}
+
+#check_tracking, #cancel_tracking {
+  display: none;
+}
+
+#start_tracking  {
+  background: black;
+  color: white;
+  margin:0 auto;
+  margin-left: 20%;
+}
+#check_tracking, #cancel_tracking{
+    background: black;
+  color: white;
+  margin:0 auto;
+  margin-left: 20%;
+    
+}
+#mark_items{
+    background: black;
+  color: white;
+  margin:0 auto;
+  margin-left: 50%;
+
+}
+#default-text-maps {
+  text-align: center;
+}
+
+#display{
+    align-content: center;
+}
